@@ -1,0 +1,116 @@
+\hypertarget{main_8cpp}{}\doxysection{src/main.cpp File Reference}
+\label{main_8cpp}\index{src/main.cpp@{src/main.cpp}}
+
+
+Code for testing a B\+M\+E280 atmospheric sensor with an E\+S\+P8266 or E\+S\+P8285.  
+
+
+{\ttfamily \#include $<$Arduino.\+h$>$}\newline
+{\ttfamily \#include $<$Wire.\+h$>$}\newline
+{\ttfamily \#include $<$Adafruit\+\_\+\+B\+M\+E280.\+h$>$}\newline
+{\ttfamily \#include $<$E\+S\+P8266\+Wi\+Fi.\+h$>$}\newline
+{\ttfamily \#include $<$Blynk\+Simple\+Esp8266\+\_\+\+S\+S\+L.\+h$>$}\newline
+{\ttfamily \#include $<$credentials.\+h$>$}\newline
+Include dependency graph for main.\+cpp\+:
+% FIG 0
+\doxysubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_8cpp_a370107467aaa825f98d37f5217fb97e4}\label{main_8cpp_a370107467aaa825f98d37f5217fb97e4}} 
+\#define \mbox{\hyperlink{main_8cpp_a370107467aaa825f98d37f5217fb97e4}{B\+M\+E\+\_\+\+P\+WR}}~12
+\begin{DoxyCompactList}\small\item\em B\+M\+E280 reader with Blynk connectivity This code will read a B\+M\+E280 atmospheric sensor and delivers the read values to a Blynk device that displays them in charts. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{main_8cpp_ad72dbcf6d0153db1b8d8a58001feed83}\label{main_8cpp_ad72dbcf6d0153db1b8d8a58001feed83}} 
+\#define {\bfseries D\+E\+B\+UG}~0
+\item 
+\mbox{\Hypertarget{main_8cpp_af6551f0b4c3964c3128f808e7bf987c7}\label{main_8cpp_af6551f0b4c3964c3128f808e7bf987c7}} 
+\#define {\bfseries D\+E\+B\+U\+G\+\_\+\+P\+R\+I\+NT}(x)
+\item 
+\mbox{\Hypertarget{main_8cpp_a3fd1be5675628ccdd1cd809ee995b2e7}\label{main_8cpp_a3fd1be5675628ccdd1cd809ee995b2e7}} 
+\#define {\bfseries S\+E\+A\+L\+E\+V\+E\+L\+P\+R\+E\+S\+S\+U\+R\+E\+\_\+\+H\+PA}~(1013.\+25)
+\item 
+\mbox{\Hypertarget{main_8cpp_aa5962fb4ec49dc59a16f6a4f7a7c9c05}\label{main_8cpp_aa5962fb4ec49dc59a16f6a4f7a7c9c05}} 
+\#define {\bfseries M\+E\+A\+S\+U\+R\+E\+\_\+\+I\+N\+T\+E\+R\+V\+AL}~(450e6)
+\item 
+\mbox{\Hypertarget{main_8cpp_a66e08efe8cf655087a9851d3eb9d20b1}\label{main_8cpp_a66e08efe8cf655087a9851d3eb9d20b1}} 
+\#define {\bfseries B\+L\+Y\+N\+K\+\_\+\+T\+E\+M\+P\+L\+A\+T\+E\+\_\+\+ID}~\char`\"{}T\+M\+P\+Llf4fr\+Ul5\char`\"{}
+\item 
+\mbox{\Hypertarget{main_8cpp_a8ae78d81234f904244f7b6a9eda31481}\label{main_8cpp_a8ae78d81234f904244f7b6a9eda31481}} 
+\#define {\bfseries B\+L\+Y\+N\+K\+\_\+\+A\+U\+T\+H\+\_\+\+T\+O\+K\+EN}~\char`\"{}Hgs\+H\+K7\+F6ngg\+W7arD-\/Rdh\+X\+V\+L\+Pbm2\+N\+W\+Fbs\char`\"{}
+\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_8cpp_a8151478629a56ae2a62a200fb35a85bc}\label{main_8cpp_a8151478629a56ae2a62a200fb35a85bc}} 
+I\+P\+Address {\bfseries \+\_\+ip} (192, 168, 25, 99)
+\item 
+\mbox{\Hypertarget{main_8cpp_a48b177f5c08851822dd4a8181f63636b}\label{main_8cpp_a48b177f5c08851822dd4a8181f63636b}} 
+I\+P\+Address {\bfseries \+\_\+gw} (192, 168, 25, 1)
+\item 
+\mbox{\Hypertarget{main_8cpp_aa5ebaafa50085347953fa70def326fa0}\label{main_8cpp_aa5ebaafa50085347953fa70def326fa0}} 
+I\+P\+Address {\bfseries \+\_\+net} (255, 255, 255, 0)
+\item 
+\mbox{\Hypertarget{main_8cpp_a16b96892040c176ad99b67b6be7d0cb5}\label{main_8cpp_a16b96892040c176ad99b67b6be7d0cb5}} 
+I\+P\+Address {\bfseries \+\_\+dns} (192, 168, 25, 5)
+\item 
+void \mbox{\hyperlink{main_8cpp_a883f22984a4fc40ef5c7a4f313ba6840}{send\+Weather\+Data}} ()
+\begin{DoxyCompactList}\small\item\em Sends the atmospheric data gathered form the B\+M\+E280 to Blynk. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{main_8cpp_a4fc01d736fe50cf5b977f755b675f11d}\label{main_8cpp_a4fc01d736fe50cf5b977f755b675f11d}} 
+void {\bfseries setup} ()
+\item 
+\mbox{\Hypertarget{main_8cpp_afe461d27b9c48d5921c00d521181f12f}\label{main_8cpp_afe461d27b9c48d5921c00d521181f12f}} 
+void {\bfseries loop} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{main_8cpp_a71730005a705ade1511a11685868e0e1}\label{main_8cpp_a71730005a705ade1511a11685868e0e1}} 
+char {\bfseries auth} \mbox{[}$\,$\mbox{]} = \char`\"{}Hgs\+H\+K7\+F6ngg\+W7arD-\/Rdh\+X\+V\+L\+Pbm2\+N\+W\+Fbs\char`\"{}
+\item 
+\mbox{\Hypertarget{main_8cpp_a18025526ea87c4c4c4b0783af52e14c7}\label{main_8cpp_a18025526ea87c4c4c4b0783af52e14c7}} 
+uint32\+\_\+t {\bfseries ts1}
+\item 
+\mbox{\Hypertarget{main_8cpp_a060f4f1b9ac9d8d21d74d7d64d69ba1c}\label{main_8cpp_a060f4f1b9ac9d8d21d74d7d64d69ba1c}} 
+uint32\+\_\+t {\bfseries ts2}
+\item 
+\mbox{\Hypertarget{main_8cpp_ab2f6b8b6b2615dbd77d4253210e4133d}\label{main_8cpp_ab2f6b8b6b2615dbd77d4253210e4133d}} 
+uint32\+\_\+t {\bfseries startup\+Time}
+\item 
+\mbox{\Hypertarget{main_8cpp_a375b545f86fd7e1d5d44926f28b75800}\label{main_8cpp_a375b545f86fd7e1d5d44926f28b75800}} 
+char {\bfseries ssid} \mbox{[}$\,$\mbox{]} = S\+S\+ID
+\item 
+\mbox{\Hypertarget{main_8cpp_a0c2356d302e37fcf49be9c6dab314eb2}\label{main_8cpp_a0c2356d302e37fcf49be9c6dab314eb2}} 
+char {\bfseries pass} \mbox{[}$\,$\mbox{]} = P\+A\+S\+S\+WD
+\item 
+\mbox{\Hypertarget{main_8cpp_a2871708605796e3f6cfa9cd9328daff3}\label{main_8cpp_a2871708605796e3f6cfa9cd9328daff3}} 
+Adafruit\+\_\+\+B\+M\+E280 {\bfseries bme}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Code for testing a B\+M\+E280 atmospheric sensor with an E\+S\+P8266 or E\+S\+P8285. 
+
+\begin{DoxyAuthor}{Author}
+Ernesto Lorenz (\href{mailto:ernesto_lorenz@gmx.de}{\texttt{ ernesto\+\_\+lorenz@gmx.\+de}}) 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+0.\+1 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+2022-\/04-\/15
+\end{DoxyDate}
+\begin{DoxyCopyright}{Copyright}
+Copyright (c) 2022 
+\end{DoxyCopyright}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{main_8cpp_a883f22984a4fc40ef5c7a4f313ba6840}\label{main_8cpp_a883f22984a4fc40ef5c7a4f313ba6840}} 
+\index{main.cpp@{main.cpp}!sendWeatherData@{sendWeatherData}}
+\index{sendWeatherData@{sendWeatherData}!main.cpp@{main.cpp}}
+\doxysubsubsection{\texorpdfstring{sendWeatherData()}{sendWeatherData()}}
+{\footnotesize\ttfamily void send\+Weather\+Data (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})}
+
+
+
+Sends the atmospheric data gathered form the B\+M\+E280 to Blynk. 
+
