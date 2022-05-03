@@ -18,7 +18,7 @@
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-#define DEBUG 0
+#define DEBUG 1
 
 #if DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
