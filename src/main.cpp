@@ -18,7 +18,7 @@
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-#define DEBUG 1
+//#define DEBUG 0 // This macro will be defined in platformio.ini under build_flags
 
 #if DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
