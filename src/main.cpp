@@ -18,9 +18,9 @@
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-//#define DEBUG 0 // This macro will be defined in platformio.ini under build_flags
+//#define SERIAL_DEBUG 0 // This macro will be defined in platformio.ini under build_flags
 
-#if DEBUG
+#if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
 #else
   #define DEBUG_PRINT(x)
@@ -38,7 +38,11 @@
 #include <Wire.h>
 //#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+
 #include <ESP8266WiFi.h>
+ADC_MODE(ADC_VCC); //vcc read-mode
+#define ACD_CORR 1.146 // ACD correction coefficient
+
 #include <BlynkSimpleEsp8266_SSL.h>
 #include <credentials.h>
 
@@ -62,11 +66,11 @@ char pass[] = PASSWD;
  * 
  * 
  */
-void setup() { 
+void setup() {
 
 Adafruit_BME280 bme; // Implements an I2C connectivity
 
-#if DEBUG  
+#if SERIAL_DEBUG  
   Serial.begin(74880);
 #endif
 
@@ -126,10 +130,15 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
   DEBUG_PRINT("P: ");  
   DEBUG_PRINT(p);
 
+  float v = ((float)ESP.getVcc())/1024; // system_get_vdd33() unit is 1/1024 V; 1.131 is the correction coefficient
+  DEBUG_PRINT("V: ");  
+  DEBUG_PRINT(v); 
+
   // Send the atmospheric values to Blynk
   Blynk.virtualWrite(V0, h);
   Blynk.virtualWrite(V1, t);
   Blynk.virtualWrite(V2, p);
+  Blynk.virtualWrite(V3, v);
   Blynk.run();
   DEBUG_PRINT("Data sent to Blynk");
 
@@ -138,6 +147,7 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
 
   // Go into deep sleep instantly for aprox. 5.5 min.
   ESP.deepSleep(MEASURE_INTERVAL , WAKE_NO_RFCAL);
+  yield();
 }
 
 /**
