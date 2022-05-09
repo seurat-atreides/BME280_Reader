@@ -22,11 +22,10 @@
 
 #if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
+  #define BLYNK_PRINT Serial
 #else
   #define DEBUG_PRINT(x)
 #endif    
-
-//#define BLYNK_PRINT Serial
 
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
@@ -67,6 +66,9 @@ char pass[] = PASSWD;
  * 
  */
 void setup() {
+#if SERIAL_DEBUG
+unsigned long ts1 = micros();
+#endif
 
 Adafruit_BME280 bme; // Implements an I2C connectivity
 
@@ -144,7 +146,10 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep 
-
+#if SERIAL_DEBUG  
+  Serial.print("Processing time = ");
+  Serial.println((unsigned long)(micros() - ts1));
+#endif
   // Go into deep sleep instantly for aprox. 5.5 min.
   ESP.deepSleep(MEASURE_INTERVAL , WAKE_NO_RFCAL);
   yield();
