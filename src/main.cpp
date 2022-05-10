@@ -10,9 +10,9 @@
  */
 
 /**
- * @brief BME280 reader with Blynk connectivity
+ * @brief BME280 reader with ubidots connectivity
  * This code will read a BME280 atmospheric sensor and delivers the read values
- * to a Blynk device that displays them in charts.
+ * to a ubidots device that displays them in gauges.
  */
 
 // User GPIO12 to power on the BME280
@@ -31,8 +31,7 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-#define BLYNK_TEMPLATE_ID "TMPLlf4frUl5"
-#define BLYNK_AUTH_TOKEN "HgsHK7F6nggW7arD-RdhXVLPbm2NWFbs"
+#define UBIDOTS_TOKEN "BBFF-tjUD1TSEGKDIBas7Y3TbLDLsV3RvsF"
 
 #include <Arduino.h> 
 #include <Wire.h>
@@ -40,21 +39,22 @@
 #include <Adafruit_BME280.h>
 
 #include <ESP8266WiFi.h>
+
 ADC_MODE(ADC_VCC); //vcc read-mode
 #define ACD_CORR 1.146 // ACD correction coefficient
 
-#include <BlynkSimpleEsp8266_SSL.h>
+#include <Ubidots.h>
 #include <credentials.h>
 
 // Static WiFi IP address settings
-IPAddress _ip (192,168, 25, 99);
+IPAddress _ip (192,168, 25, 111);
 IPAddress _gw (192,168, 25,  1);
 IPAddress _net(255,255,255,  0);
 IPAddress _dns(192,168, 25,  5);
 
-char auth[] = "HgsHK7F6nggW7arD-RdhXVLPbm2NWFbs";
+// Instantiate an Ubidots object
+Ubidots ubidots(UBIDOTS_TOKEN);
 
-uint32_t ts1, ts2, startupTime;
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
@@ -68,10 +68,13 @@ char pass[] = PASSWD;
  */
 void setup() {
 
-Adafruit_BME280 bme; // Implements an I2C connectivity
+Adafruit_BME280 bme; // Instantiates a BME280 object
+
+Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
 
 #if SERIAL_DEBUG  
   Serial.begin(74880);
+  ubidots.setDebug(true);
 #endif
 
   while (!Serial);
@@ -109,13 +112,8 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
                   Adafruit_BME280::FILTER_OFF   );
   DEBUG_PRINT("BEM is started");            
 
-  // Connect to Blynk
-  Blynk.config(auth); // for cloud server
-  DEBUG_PRINT("Blynk is configured"); 
-  while (Blynk.connect() == false) {
-    DEBUG_PRINT(".");
-  }
-  DEBUG_PRINT("Blynk is connected");
+  
+  DEBUG_PRINT("Ubidots client is configured"); 
 
   // Send the weather data to Blynk
   float h = bme.readHumidity();            // Read the humidity
@@ -126,7 +124,7 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
   DEBUG_PRINT("T: ");
   DEBUG_PRINT(t);
 
-  float p = bme.readPressure() / 100.0F;   // Read the pressure
+  float p = bme.readPressure() / 100.0F;   // Read the pressure and convert to millibar
   DEBUG_PRINT("P: ");  
   DEBUG_PRINT(p);
 
@@ -134,13 +132,16 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
   DEBUG_PRINT("V: ");  
   DEBUG_PRINT(v); 
 
-  // Send the atmospheric values to Blynk
-  Blynk.virtualWrite(V0, h);
-  Blynk.virtualWrite(V1, t);
-  Blynk.virtualWrite(V2, p);
-  Blynk.virtualWrite(V3, v);
-  Blynk.run();
-  DEBUG_PRINT("Data sent to Blynk");
+  // Send the atmospheric values to Ubidots
+  ubidots.add("h", h);  
+  ubidots.add("t", t);
+  ubidots.add("p", p);
+  ubidots.add("v", v);
+
+  while(!ubidots.send("84f3eb1b1c8f", "BME280")) {
+  }
+
+  DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep 
