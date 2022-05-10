@@ -30,9 +30,6 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-#define BLYNK_TEMPLATE_ID "TMPLlf4frUl5"
-#define BLYNK_AUTH_TOKEN "HgsHK7F6nggW7arD-RdhXVLPbm2NWFbs"
-
 #include <Arduino.h> 
 #include <Wire.h>
 //#include <Adafruit_Sensor.h>
