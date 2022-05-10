@@ -31,8 +31,6 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-#define UBIDOTS_TOKEN "BBFF-tjUD1TSEGKDIBas7Y3TbLDLsV3RvsF"
-
 #include <Arduino.h> 
 #include <Wire.h>
 //#include <Adafruit_Sensor.h>
