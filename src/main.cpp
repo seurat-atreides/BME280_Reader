@@ -31,8 +31,6 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-#define UBIDOTS_TOKEN "BBFF-tjUD1TSEGKDIBas7Y3TbLDLsV3RvsF"
-
 #include <Arduino.h> 
 #include <Wire.h>
 //#include <Adafruit_Sensor.h>
@@ -68,17 +66,14 @@ char pass[] = PASSWD;
  */
 void setup() {
 
-Adafruit_BME280 bme; // Instantiates a BME280 object
-
-Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
+  Adafruit_BME280 bme; // Instantiates a BME280 object
+  Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
 
 #if SERIAL_DEBUG  
   Serial.begin(74880);
   ubidots.setDebug(true);
 #endif
 
-  while (!Serial);
-  DEBUG_PRINT();
   DEBUG_PRINT("Serial comms are up");
 
   WiFi.config(_ip, _gw, _net, _dns);
@@ -135,9 +130,8 @@ Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
   ubidots.add("p", p);
   ubidots.add("v", v);
 
-  while(!ubidots.send("84f3eb1b1c8f", "BME280")) {
-  }
-
+  bool bufferSent = false;
+  ubidots.send("84f3eb1b1c8f", "BME280");
   DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
@@ -153,9 +147,5 @@ Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
  *        This secction will not be used since we are going into deep sleep.
  */
 void loop() {
-  /*
-  We do notrhing in the loop secctiuon because
-  all necesary steps are performed during setup
-  and we are using deep sleep mode.
-  */
+
 }
