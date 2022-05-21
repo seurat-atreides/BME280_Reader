@@ -48,7 +48,7 @@ ADC_MODE(ADC_VCC); //vcc read-mode
 IPAddress _ip (192,168, 25, 111);
 IPAddress _gw (192,168, 25,  1);
 IPAddress _net(255,255,255,  0);
-IPAddress _dns(192,168, 25,  5);
+IPAddress _dns(208,67, 222,  222);
 
 // Instantiate an Ubidots object
 Ubidots ubidots(UBIDOTS_TOKEN);
