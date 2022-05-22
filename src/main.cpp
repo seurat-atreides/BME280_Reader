@@ -46,9 +46,9 @@ ADC_MODE(ADC_VCC); //vcc read-mode
 IPAddress _ip (192,168, 25, 99);
 IPAddress _gw (192,168, 25,  1);
 IPAddress _net(255,255,255,  0);
-IPAddress _dns(192,168, 25,  5);
+IPAddress _dns(8, 8, 8,  8);
 
-char auth[] = "HgsHK7F6nggW7arD-RdhXVLPbm2NWFbs";
+char auth[] = BLYNK_AUTH_TOKEN;
 
 uint32_t ts1, ts2, startupTime;
 
