@@ -1,7 +1,7 @@
 /**
  * @file main.cpp
  * @author Ernesto Lorenz (ernesto_lorenz@gmx.de)
- * @brief  BME280 atmospheric sensor reader/uploader to Blynk for an ESP8266 or ESP8285
+ * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
  * @version 0.1
  * @date 2022-04-15
  * 
@@ -14,6 +14,13 @@
  * This code will read a BME280 atmospheric sensor and delivers the read values
  * to a ubidots device that displays them in gauges.
  */
+
+#include <Arduino.h> 
+#include <Wire.h>
+#include <Adafruit_BME280.h>
+#include <ESP8266WiFi.h>
+#include <Ubidots.h>
+#include <credentials.h>
 
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
@@ -31,18 +38,8 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-#include <Arduino.h> 
-#include <Wire.h>
-//#include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
-
-#include <ESP8266WiFi.h>
-
 ADC_MODE(ADC_VCC); //vcc read-mode
 #define ACD_CORR 1.146 // ACD correction coefficient
-
-#include <Ubidots.h>
-#include <credentials.h>
 
 // Static WiFi IP address settings
 IPAddress _ip (192,168, 25, 111);
@@ -131,7 +128,7 @@ void setup() {
   ubidots.add("v", v);
 
   bool bufferSent = false;
-  ubidots.send("84f3eb1b1c8f", "BME280");
+  ubidots.send("bme280");
   DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
@@ -147,5 +144,5 @@ void setup() {
  *        This secction will not be used since we are going into deep sleep.
  */
 void loop() {
-
+  // Do nothing here.
 }
