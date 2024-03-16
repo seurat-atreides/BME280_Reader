@@ -2,6 +2,7 @@
  * @file main.cpp
  * @author Ernesto Lorenz (ernesto_lorenz@gmx.de)
  * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
+ * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
  * @version 0.1
  * @date 2022-04-15
  * 
@@ -14,6 +15,13 @@
  * This code will read a BME280 atmospheric sensor and delivers the read values
  * to a ubidots device that displays them in gauges.
  */
+
+#include <Arduino.h> 
+#include <Wire.h>
+#include <Adafruit_BME280.h>
+#include <ESP8266WiFi.h>
+#include <Ubidots.h>
+#include <credentials.h>
 
 #include <Arduino.h> 
 #include <Wire.h>
@@ -129,6 +137,7 @@ void setup() {
 
   bool bufferSent = false;
   ubidots.send("bme280");
+  ubidots.send("bme280");
   DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
@@ -146,3 +155,4 @@ void setup() {
 void loop() {
   // Do nothing here.
 }
+
