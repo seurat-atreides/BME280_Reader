@@ -1,7 +1,8 @@
 /**
  * @file main.cpp
  * @author Ernesto Lorenz (ernesto_lorenz@gmx.de)
- * @brief  BME280 atmospheric sensor reader/uploader to Blynk for an ESP8266 or ESP8285
+ * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
+ * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
  * @version 0.1
  * @date 2022-04-15
  * 
@@ -10,10 +11,24 @@
  */
 
 /**
- * @brief BME280 reader with Blynk connectivity
+ * @brief BME280 reader with ubidots connectivity
  * This code will read a BME280 atmospheric sensor and delivers the read values
- * to a Blynk device that displays them in charts.
+ * to a ubidots device that displays them in gauges.
  */
+
+#include <Arduino.h> 
+#include <Wire.h>
+#include <Adafruit_BME280.h>
+#include <ESP8266WiFi.h>
+#include <Ubidots.h>
+#include <credentials.h>
+
+#include <Arduino.h> 
+#include <Wire.h>
+#include <Adafruit_BME280.h>
+#include <ESP8266WiFi.h>
+#include <Ubidots.h>
+#include <credentials.h>
 
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
@@ -30,27 +45,20 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
+
 #include <Arduino.h> 
 #include <Wire.h>
 //#include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
 #include <ESP8266WiFi.h>
-ADC_MODE(ADC_VCC); //vcc read-mode
-#define ACD_CORR 1.146 // ACD correction coefficient
 
-#include <BlynkSimpleEsp8266_SSL.h>
-#include <credentials.h>
+IPAddress _dns(208,67, 222,  222);
 
-// Static WiFi IP address settings
-IPAddress _ip (192,168, 25, 99);
-IPAddress _gw (192,168, 25,  1);
-IPAddress _net(255,255,255,  0);
-IPAddress _dns(8, 8, 8,  8);
+// Instantiate an Ubidots object
+Ubidots ubidots(UBIDOTS_TOKEN);
 
-char auth[] = BLYNK_AUTH_TOKEN;
 
-uint32_t ts1, ts2, startupTime;
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
@@ -67,14 +75,14 @@ void setup() {
 unsigned long ts1 = micros();
 #endif
 
-Adafruit_BME280 bme; // Implements an I2C connectivity
+  Adafruit_BME280 bme; // Instantiates a BME280 object
+  Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
 
 #if SERIAL_DEBUG  
   Serial.begin(74880);
+  ubidots.setDebug(true);
 #endif
 
-  while (!Serial);
-  DEBUG_PRINT();
   DEBUG_PRINT("Serial comms are up");
 
   WiFi.config(_ip, _gw, _net, _dns);
@@ -108,14 +116,6 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
                   Adafruit_BME280::FILTER_OFF   );
   DEBUG_PRINT("BEM is started");            
 
-  // Connect to Blynk
-  Blynk.config(auth); // for cloud server
-  DEBUG_PRINT("Blynk is configured"); 
-  while (Blynk.connect() == false) {
-    DEBUG_PRINT(".");
-  }
-  DEBUG_PRINT("Blynk is connected");
-
   // Send the weather data to Blynk
   float h = bme.readHumidity();            // Read the humidity
   DEBUG_PRINT("H: ");
@@ -125,7 +125,7 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
   DEBUG_PRINT("T: ");
   DEBUG_PRINT(t);
 
-  float p = bme.readPressure() / 100.0F;   // Read the pressure
+  float p = bme.readPressure() / 100.0F;   // Read the pressure and convert to millibar
   DEBUG_PRINT("P: ");  
   DEBUG_PRINT(p);
 
@@ -133,13 +133,16 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
   DEBUG_PRINT("V: ");  
   DEBUG_PRINT(v); 
 
-  // Send the atmospheric values to Blynk
-  Blynk.virtualWrite(V0, h);
-  Blynk.virtualWrite(V1, t);
-  Blynk.virtualWrite(V2, p);
-  Blynk.virtualWrite(V3, v);
-  Blynk.run();
-  DEBUG_PRINT("Data sent to Blynk");
+  // Send the atmospheric values to Ubidots
+  ubidots.add("h", h);  
+  ubidots.add("t", t);
+  ubidots.add("p", p);
+  ubidots.add("v", v);
+
+  bool bufferSent = false;
+  ubidots.send("bme280");
+  ubidots.send("bme280");
+  DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep 
@@ -157,9 +160,6 @@ Adafruit_BME280 bme; // Implements an I2C connectivity
  *        This secction will not be used since we are going into deep sleep.
  */
 void loop() {
-  /*
-  We do notrhing in the loop secctiuon because
-  all necesary steps are performed during setup
-  and we are using deep sleep mode.
-  */
+  // Do nothing here.
 }
+
