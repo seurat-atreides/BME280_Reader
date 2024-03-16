@@ -37,26 +37,27 @@
 
 #if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
+  #define BLYNK_PRINT Serial
 #else
   #define DEBUG_PRINT(x)
 #endif    
 
-//#define BLYNK_PRINT Serial
-
 #define SEALEVELPRESSURE_HPA (1013.25)
 #define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-ADC_MODE(ADC_VCC); //vcc read-mode
-#define ACD_CORR 1.146 // ACD correction coefficient
 
-// Static WiFi IP address settings
-IPAddress _ip (192,168, 25, 111);
-IPAddress _gw (192,168, 25,  1);
-IPAddress _net(255,255,255,  0);
+#include <Arduino.h> 
+#include <Wire.h>
+//#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
+
+#include <ESP8266WiFi.h>
+
 IPAddress _dns(208,67, 222,  222);
 
 // Instantiate an Ubidots object
 Ubidots ubidots(UBIDOTS_TOKEN);
+
 
 
 // Your WiFi credentials.
@@ -70,6 +71,9 @@ char pass[] = PASSWD;
  * 
  */
 void setup() {
+#if SERIAL_DEBUG
+unsigned long ts1 = micros();
+#endif
 
   Adafruit_BME280 bme; // Instantiates a BME280 object
   Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
@@ -142,7 +146,10 @@ void setup() {
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep 
-
+#if SERIAL_DEBUG  
+  Serial.print("Processing time = ");
+  Serial.println((unsigned long)(micros() - ts1));
+#endif
   // Go into deep sleep instantly for aprox. 5.5 min.
   ESP.deepSleep(MEASURE_INTERVAL , WAKE_NO_RFCAL);
   yield();
