@@ -134,7 +134,6 @@ unsigned long ts1 = micros();
 
   bool bufferSent = false;
   ubidots.send("bme280");
-  ubidots.send("bme280");
   DEBUG_PRINT("Data sent to Ubidots");
 
   // Power off the BME280 to save energy
