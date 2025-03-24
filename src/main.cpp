@@ -27,7 +27,7 @@
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-//#define SERIAL_DEBUG 0 // This macro will be defined in platformio.ini under build_flags
+#define SERIAL_DEBUG 1 // This macro will be defined in platformio.ini under build_flags
 
 #if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
@@ -37,16 +37,10 @@
 #endif
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~7 min)
+#define MEASURE_INTERVAL (300e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-// The following variables are not required because the device is only active for a very short term
-// and then goes to sleep for ~ 7 min. No sense in assigning a static IP address.
-/*
-IPAddress _dns(208,67,222,222);
-IPAddress _ip(192,168,25,33);
-IPAddress _net(255,255,255,0);
-IPAddress _gw(192,168,25,1);
-*/
+ADC_MODE(ADC_VCC); //vcc read-mode
+
 
 // Instantiate an Ubidots object
 Ubidots ubidots(UBIDOTS_TOKEN);
@@ -64,21 +58,18 @@ char pass[] = PASSWD;
  *
  */
 void setup() {
+
+  ubidots.setDebug(false); // Set to true if you require Ubidots debugging
+
 #if SERIAL_DEBUG
-unsigned long ts1 = micros();
+  unsigned long ts1 = micros();
+  Serial.begin(74880);
 #endif
 
   Adafruit_BME280 bme; // Instantiates a BME280 object
-  Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
-
-#if SERIAL_DEBUG
-  Serial.begin(74880);
-  ubidots.setDebug(true);
-#endif
 
   DEBUG_PRINT("Serial comms are up");
 
-  //WiFi.config(_ip, _gw, _net, _dns);
   WiFi.begin(ssid, pass);
   DEBUG_PRINT("WiFi is configured");
 
@@ -122,7 +113,7 @@ unsigned long ts1 = micros();
   DEBUG_PRINT("P: ");
   DEBUG_PRINT(p);
 
-  float v = ((float)ESP.getVcc())/1024; // system_get_vdd33() unit is 1/1024 V; 1.131 is the correction coefficient
+  float v = ((float)ESP.getVcc())/1024; // system_get_vdd33(), unit is 1/1024 Vcc; 1.131 is the correction coefficient
   DEBUG_PRINT("V: ");
   DEBUG_PRINT(v);
 
@@ -133,8 +124,13 @@ unsigned long ts1 = micros();
   ubidots.add("v", v);
 
   bool bufferSent = false;
-  ubidots.send("bme280");
-  DEBUG_PRINT("Data sent to Ubidots");
+  bufferSent = ubidots.send("Atmos280");
+  //DEBUG_PRINT("Data sent to Ubidots");
+
+  if (bufferSent) {
+    // Do something if values were sent properly
+    DEBUG_PRINT("Data sent to Ubidots device");
+  }
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep
@@ -142,7 +138,7 @@ unsigned long ts1 = micros();
   Serial.print("Processing time = ");
   Serial.println((unsigned long)(micros() - ts1));
 #endif
-  // Go into deep sleep instantly for aprox. 5.5 min.
+  // Go into deep sleep instantly
   ESP.deepSleep(MEASURE_INTERVAL , WAKE_NO_RFCAL);
   yield();
 }
@@ -152,6 +148,6 @@ unsigned long ts1 = micros();
  *        This secction will not be used since we are going into deep sleep.
  */
 void loop() {
-  // Do nothing here. The BME280 read process is handled by the setup() routine.
+  // Do nothing here. The BME280 read and Ubidots send processes are handled by the setup() routine.
 }
 
