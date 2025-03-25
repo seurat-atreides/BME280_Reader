@@ -16,18 +16,16 @@
  * to a ubidots device that displays them in gauges.
  */
 
-#include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#include <ESP8266WiFi.h>
 #include <Ubidots.h>
 #include "credentials.h"
 
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-#define SERIAL_DEBUG 1 // This macro will be defined in platformio.ini under build_flags
+// The SERIAL_DEBUG  macro will be defined in platformio.ini under build_flags
 
 #if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
@@ -40,12 +38,18 @@
 #define MEASURE_INTERVAL (300e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
 ADC_MODE(ADC_VCC); //vcc read-mode
+//#define ACD_CORR 1.131 // ACD correction coefficient
 
+// Static WiFi IP address settings to reduce power consumption on wakeup
+IPAddress _ip (192,168, 25, 99);
+IPAddress _gw (192,168, 25,  1);
+IPAddress _net(255,255,255,  0);
+IPAddress _dns(208, 67, 222,  222);
 
 // Instantiate an Ubidots object
-Ubidots ubidots(UBIDOTS_TOKEN);
+Ubidots* ubidots{nullptr};
 
-
+//Ubidots ubidots(UBIDOTS_TOKEN, UBI_TCP);
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
@@ -59,19 +63,30 @@ char pass[] = PASSWD;
  */
 void setup() {
 
-  ubidots.setDebug(false); // Set to true if you require Ubidots debugging
-
 #if SERIAL_DEBUG
   unsigned long ts1 = micros();
   Serial.begin(74880);
+  DEBUG_PRINT("Serial comms are up");
+#endif
+
+
+  WiFi.config(_ip, _gw, _net, _dns);
+
+  if ( Ubidots::wifiConnect(ssid, pass) ) {
+    DEBUG_PRINT("WiFi is connected");
+  }
+  else {
+    DEBUG_PRINT("WiFi connection error");
+  }
+
+  ubidots = new Ubidots(UBIDOTS_TOKEN, UBI_TCP);
+
+  ubidots->setDebug(false);
+#if SERIAL_DEBUG
+  ubidots->setDebug(true);
 #endif
 
   Adafruit_BME280 bme; // Instantiates a BME280 object
-
-  DEBUG_PRINT("Serial comms are up");
-
-  WiFi.begin(ssid, pass);
-  DEBUG_PRINT("WiFi is configured");
 
   // Power ON the BME280 board
   pinMode(BME_PWR, OUTPUT);
@@ -88,8 +103,9 @@ void setup() {
       delay(10);
       digitalWrite(BME_PWR, HIGH);
     }
-    else
+    else {
       BMEstarted = true;
+    }
   } while (!BMEstarted);
 
   // Set up the BME280 in forced mode to use less power
@@ -113,19 +129,18 @@ void setup() {
   DEBUG_PRINT("P: ");
   DEBUG_PRINT(p);
 
-  float v = ((float)ESP.getVcc())/1024; // system_get_vdd33(), unit is 1/1024 Vcc; 1.131 is the correction coefficient
+  float v = ((float)ESP.getVcc())/1024.00f; // system_get_vdd33(), unit is 1/1024 Vcc; 1.131 is the correction coefficient
   DEBUG_PRINT("V: ");
   DEBUG_PRINT(v);
 
   // Send the atmospheric values to Ubidots
-  ubidots.add("h", h);
-  ubidots.add("t", t);
-  ubidots.add("p", p);
-  ubidots.add("v", v);
+  ubidots->add("h", h);
+  ubidots->add("t", t);
+  ubidots->add("p", p);
+  ubidots->add("v", v);
 
   bool bufferSent = false;
-  bufferSent = ubidots.send("Atmos280");
-  //DEBUG_PRINT("Data sent to Ubidots");
+  bufferSent = ubidots->send("Atmos280");
 
   if (bufferSent) {
     // Do something if values were sent properly
