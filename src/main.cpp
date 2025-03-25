@@ -16,18 +16,16 @@
  * to a ubidots device that displays them in gauges.
  */
 
-#include <Arduino.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
-#include <ESP8266WiFi.h>
 #include <Ubidots.h>
 #include "credentials.h"
 
 // User GPIO12 to power on the BME280
 #define BME_PWR 12
 
-//#define SERIAL_DEBUG 0 // This macro will be defined in platformio.ini under build_flags
+// The SERIAL_DEBUG  macro will be defined in platformio.ini under build_flags
 
 #if SERIAL_DEBUG
   #define DEBUG_PRINT(x) Serial.println(x)
@@ -37,21 +35,21 @@
 #endif
 
 #define SEALEVELPRESSURE_HPA (1013.25)
-#define MEASURE_INTERVAL (450e6) // measurement interval in usec. This value isn't precise! (~7 min)
+#define MEASURE_INTERVAL (300e6) // measurement interval in usec. This value isn't precise! (~5 min)
 
-// The following variables are not required because the device is only active for a very short term
-// and then goes to sleep for ~ 7 min. No sense in assigning a static IP address.
-/*
-IPAddress _dns(208,67,222,222);
-IPAddress _ip(192,168,25,33);
-IPAddress _net(255,255,255,0);
-IPAddress _gw(192,168,25,1);
-*/
+ADC_MODE(ADC_VCC); //vcc read-mode
+//#define ACD_CORR 1.131 // ACD correction coefficient
+
+// Static WiFi IP address settings to reduce power consumption on wakeup
+IPAddress _ip (192,168, 25, 99);
+IPAddress _gw (192,168, 25,  1);
+IPAddress _net(255,255,255,  0);
+IPAddress _dns(208, 67, 222,  222);
 
 // Instantiate an Ubidots object
-Ubidots ubidots(UBIDOTS_TOKEN);
+Ubidots* ubidots{nullptr};
 
-
+//Ubidots ubidots(UBIDOTS_TOKEN, UBI_TCP);
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
@@ -64,23 +62,31 @@ char pass[] = PASSWD;
  *
  */
 void setup() {
+
 #if SERIAL_DEBUG
-unsigned long ts1 = micros();
+  unsigned long ts1 = micros();
+  Serial.begin(74880);
+  DEBUG_PRINT("Serial comms are up");
+#endif
+
+
+  WiFi.config(_ip, _gw, _net, _dns);
+
+  if ( Ubidots::wifiConnect(ssid, pass) ) {
+    DEBUG_PRINT("WiFi is connected");
+  }
+  else {
+    DEBUG_PRINT("WiFi connection error");
+  }
+
+  ubidots = new Ubidots(UBIDOTS_TOKEN, UBI_TCP);
+
+  ubidots->setDebug(false);
+#if SERIAL_DEBUG
+  ubidots->setDebug(true);
 #endif
 
   Adafruit_BME280 bme; // Instantiates a BME280 object
-  Ubidots ubidots(UBIDOTS_TOKEN); // Instantiates an Ubidots object
-
-#if SERIAL_DEBUG
-  Serial.begin(74880);
-  ubidots.setDebug(true);
-#endif
-
-  DEBUG_PRINT("Serial comms are up");
-
-  //WiFi.config(_ip, _gw, _net, _dns);
-  WiFi.begin(ssid, pass);
-  DEBUG_PRINT("WiFi is configured");
 
   // Power ON the BME280 board
   pinMode(BME_PWR, OUTPUT);
@@ -97,8 +103,9 @@ unsigned long ts1 = micros();
       delay(10);
       digitalWrite(BME_PWR, HIGH);
     }
-    else
+    else {
       BMEstarted = true;
+    }
   } while (!BMEstarted);
 
   // Set up the BME280 in forced mode to use less power
@@ -122,20 +129,23 @@ unsigned long ts1 = micros();
   DEBUG_PRINT("P: ");
   DEBUG_PRINT(p);
 
-  float v = ((float)ESP.getVcc())/1024; // system_get_vdd33() unit is 1/1024 V; 1.131 is the correction coefficient
+  float v = ((float)ESP.getVcc())/1024.00f; // system_get_vdd33(), unit is 1/1024 Vcc; 1.131 is the correction coefficient
   DEBUG_PRINT("V: ");
   DEBUG_PRINT(v);
 
   // Send the atmospheric values to Ubidots
-  ubidots.add("h", h);
-  ubidots.add("t", t);
-  ubidots.add("p", p);
-  ubidots.add("v", v);
+  ubidots->add("h", h);
+  ubidots->add("t", t);
+  ubidots->add("p", p);
+  ubidots->add("v", v);
 
   bool bufferSent = false;
-  ubidots.send("bme280");
-  ubidots.send("bme280");
-  DEBUG_PRINT("Data sent to Ubidots");
+  bufferSent = ubidots->send("Atmos280");
+
+  if (bufferSent) {
+    // Do something if values were sent properly
+    DEBUG_PRINT("Data sent to Ubidots device");
+  }
 
   // Power off the BME280 to save energy
   digitalWrite(BME_PWR, LOW); // Power off the BME280 before going to sleep
@@ -143,7 +153,7 @@ unsigned long ts1 = micros();
   Serial.print("Processing time = ");
   Serial.println((unsigned long)(micros() - ts1));
 #endif
-  // Go into deep sleep instantly for aprox. 5.5 min.
+  // Go into deep sleep instantly
   ESP.deepSleep(MEASURE_INTERVAL , WAKE_NO_RFCAL);
   yield();
 }
@@ -153,6 +163,6 @@ unsigned long ts1 = micros();
  *        This secction will not be used since we are going into deep sleep.
  */
 void loop() {
-  // Do nothing here. The BME280 read process is handled by the setup() routine.
+  // Do nothing here. The BME280 read and Ubidots send processes are handled by the setup() routine.
 }
 
