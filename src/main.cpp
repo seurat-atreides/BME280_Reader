@@ -2,7 +2,6 @@
  * @file main.cpp
  * @author Ernesto Lorenz (ernesto_lorenz@gmx.de)
  * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
- * @brief  BME280 atmospheric sensor reader/uploader to Ubidots for an ESP8266 or ESP8285
  * @version 0.1
  * @date 2022-04-15
  *
